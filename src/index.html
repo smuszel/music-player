@@ -6,16 +6,37 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Music Player</title>
 </head>
+<style>
+    body {
+        margin: 0;
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+    }
+
+    section {
+        display: flex;
+    }
+
+    main {
+        position: relative;
+    }
+</style>
 <body>
     <main>
         <section class="controls">
-            <button class="play"></button>
-            <button class="pause"></button>
-            <button class="random-music"></button>
+            <button class="play">play</button>
+            <button class="pause">pause</button>
+            <button class="random-music">play random</button>
+            <input type="file">
         </section>
-        <section>
-            <canvas></canvas>
-        </section>
+        <canvas></canvas>
     </main>
 </body>
 </html>

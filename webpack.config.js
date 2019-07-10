@@ -19,6 +19,15 @@ module.exports = {
         rules: [
             { test: /\.css/, use: ['style-loader', 'css-loader'] },
             { test: /\.(js|ts)/, use: ['babel-loader'] },
+            {
+                test: /\.mp3$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {},
+                    },
+                ],
+            },
         ],
     },
     devtool: 'source-map',

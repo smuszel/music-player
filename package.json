@@ -33,6 +33,7 @@
         "cypress-file-upload": "^3.2.0",
         "cypress-image-snapshot": "^3.1.1",
         "eslint": "^6.0.1",
+        "file-loader": "^4.0.0",
         "html-webpack-plugin": "^3.2.0",
         "prettier": "^1.18.2",
         "style-loader": "^0.23.1",
