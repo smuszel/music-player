@@ -1,0 +1,41 @@
+{
+    "name": "music-player",
+    "version": "0.0.0",
+    "description": "just a music player",
+    "main": "dist/index.js",
+    "scripts": {
+        "start": "webpack-dev-server --mode=development",
+        "build": "yarn lint && webpack --mode=production",
+        "lint": "prettier ./src/**/*.ts --write",
+        "cy": "cypress open",
+        "test": "cypress run"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/smuszel/music-player.git"
+    },
+    "author": "smuszel",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/smuszel/music-player/issues"
+    },
+    "homepage": "https://github.com/smuszel/music-player#readme",
+    "devDependencies": {
+        "@typescript-eslint/parser": "^1.11.0",
+        "babel": "^6.23.0",
+        "babel-loader": "^8.0.6",
+        "css-loader": "^3.0.0",
+        "cypress": "^3.4.0",
+        "eslint": "^6.0.1",
+        "html-webpack-plugin": "^3.2.0",
+        "prettier": "^1.18.2",
+        "style-loader": "^0.23.1",
+        "typescript": "^3.5.3",
+        "webpack": "^4.35.3",
+        "webpack-cli": "^3.3.5",
+        "webpack-dev-server": "^3.7.2",
+        "@babel/core": "^7.5.4",
+        "@babel/preset-env": "^7.5.4",
+        "@babel/preset-typescript": "^7.3.3"
+    }
+}
