@@ -4,6 +4,7 @@ const path = require('path');
 
 const paths = {
     index: path.resolve(__dirname, 'src', 'index.ts'),
+    template: path.resolve(__dirname, 'src', 'index.html'),
 };
 
 /** @type {webpack.Configuration} */
@@ -21,5 +22,5 @@ module.exports = {
         ],
     },
     devtool: 'source-map',
-    plugins: [new webpack.ProgressPlugin(), new HtmlPlugin()],
+    plugins: [new webpack.ProgressPlugin(), new HtmlPlugin({ template: paths.template })],
 };
