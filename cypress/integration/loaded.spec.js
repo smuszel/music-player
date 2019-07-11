@@ -10,12 +10,12 @@ describe('Music Player with loaded music file', () => {
 
     it('can start playing', () => {
         cy.get(selectors.play).click();
-        cy.get(selectors.visualizer).should('have.class', 'animated');
+        cy.get(selectors.visualizer).should('have.class', 'playing');
     });
 
     it('can pause while playing', () => {
         cy.get(selectors.play).click();
         cy.get(selectors.pause).click();
-        cy.get(selectors.visualizer).should('not.have.class', 'animated');
+        cy.get(selectors.visualizer).should('not.have.class', 'playing');
     });
 })

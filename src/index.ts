@@ -10,35 +10,98 @@ const dom = {
     audio: document.createElement('audio'),
 };
 
-const canvasContext = dom.canvas.getContext('2d');
-const canvasWidth = () => dom.canvas.width;
-const canvasHeight = () => dom.canvas.height;
-
 const state: State = {
     currentFile: null,
     playing: false,
     analyzer: null,
-    progress: 0,
+    opacity: 0,
     audioContext: null,
     mediaSource: null,
+    byteFrequency: new Uint8Array(),
+    canvasContext: dom.canvas.getContext('2d'),
 };
 
-const render = () => {
+const renderMain = () => {
     if (state.playing && state.currentFile) {
         dom.play.disabled = true;
         dom.pause.disabled = false;
-        dom.canvas.classList.add('animated');
-        animateMusicFrame();
+        dom.canvas.classList.add('playing');
+        state.opacity = 0.8;
     } else if (state.currentFile) {
         dom.play.disabled = false;
         dom.pause.disabled = true;
         dom.canvas.classList.add('loaded');
-        dom.canvas.classList.remove('animated');
+        dom.canvas.classList.remove('playing');
+        state.opacity = 0.5;
     } else {
         dom.play.disabled = true;
         dom.pause.disabled = true;
-        dom.canvas.classList.add('loaded');
-        dom.canvas.classList.remove('animated');
+        dom.canvas.classList.remove('loaded');
+        dom.canvas.classList.remove('playing');
+        state.opacity = 0.2;
+    }
+
+    renderFrame();
+    requestAnimationFrame(renderMain);
+};
+
+const renderFrame = () => {
+    const w = dom.canvas.width;
+    const h = dom.canvas.height;
+
+    const reset = () => {
+        state.canvasContext.fillStyle = '#fff';
+        state.canvasContext.fillRect(0, 0, w, h);
+    };
+
+    const drawGradient = () => {
+        const gradientPos: T4<number> = [(1 / 3) * w, h, (2 / 3) * h, 0];
+        const gradient = state.canvasContext.createLinearGradient(
+            ...gradientPos,
+        );
+
+        gradient.addColorStop(0.0, `rgba(41, 10, 89, ${state.opacity})`);
+        gradient.addColorStop(1.0, `rgba(255, 124, 0, ${state.opacity})`);
+
+        state.canvasContext.fillStyle = gradient;
+        state.canvasContext.fillRect(0, 0, w, h);
+    };
+
+    const drawMusicBars = () => {
+        const bitCount = state.analyzer.frequencyBinCount;
+        const barWidth = (w / bitCount) * 2.5;
+        let barPosition = 0;
+
+        // If track is paused the analyzer does not pause populating the
+        // byte frequencies. We have to manually stop it :/
+        if (state.playing) {
+            state.analyzer.getByteFrequencyData(state.byteFrequency);
+        }
+
+        state.byteFrequency.forEach((barHeight, ix) => {
+            const r = barHeight + 5 * (ix / bitCount);
+            const g = 200 * (ix / bitCount);
+            const b = 80;
+
+            state.canvasContext.fillStyle = `rgb(${[r, g, b].join(',')})`;
+            const rect: T4<number> = [
+                barPosition,
+                h - barHeight / 3,
+                barWidth,
+                barHeight,
+            ];
+
+            state.canvasContext.fillRect(...rect);
+
+            barPosition += barWidth + 1;
+        });
+    };
+
+    reset();
+    drawGradient();
+
+    if (state.analyzer) {
+        drawMusicBars();
     }
 };
 
@@ -52,6 +115,7 @@ const startPlaying = () => {
     analyzer.connect(audioContext.destination);
     analyzer.fftSize = 256;
 
+    state.byteFrequency = new Uint8Array(analyzer.frequencyBinCount);
     state.analyzer = analyzer;
     state.audioContext = audioContext;
     state.mediaSource = mediaSource;
@@ -64,33 +128,11 @@ const stopPlaying = () => {
     state.playing = false;
 };
 
-const animateMusicFrame = () => {
-    resetCanvas();
-    const bitCount = state.analyzer.frequencyBinCount;
-    const barWidth = (canvasWidth() / bitCount) * 2.5;
-    const byteFrequency = new Uint8Array(bitCount);
-    state.analyzer.getByteFrequencyData(byteFrequency);
-    let barPosition = 0;
-    byteFrequency.forEach((barHeight, ix) => {
-        const r = barHeight + 5 * (ix / bitCount);
-        const g = 200 * (ix / bitCount);
-        const b = 80;
+const resetBars = () => (state.byteFrequency = new Uint8Array());
 
-        canvasContext.fillStyle = `rgb(${[r, g, b].join(',')})`;
-        canvasContext.fillRect(
-            barPosition,
-            canvasHeight() - barHeight / 3,
-            barWidth,
-            barHeight,
-        );
-
-        barPosition += barWidth + 1;
-    });
-};
-
-const resetCanvas = () => {
-    canvasContext.fillStyle = '#000';
-    canvasContext.fillRect(0, 0, canvasWidth(), canvasHeight());
+const setLoadedTrack = (obj: File | Blob) => {
+    state.currentFile = obj;
+    dom.audio.src = URL.createObjectURL(state.currentFile);
 };
 
 window.addEventListener('load', () => {
@@ -99,18 +141,16 @@ window.addEventListener('load', () => {
 
     dom.randomMusic.addEventListener('click', async () => {
         stopPlaying();
-        resetCanvas();
         const blob = await fetch(pianoMusic).then(r => r.blob());
-        state.currentFile = blob;
-        dom.audio.src = URL.createObjectURL(state.currentFile);
+        setLoadedTrack(blob);
+        resetBars();
     });
 
     dom.upload.addEventListener('change', () => {
-        state.currentFile = dom.upload.files[0];
-        resetCanvas();
-        dom.audio.src = URL.createObjectURL(state.currentFile);
+        stopPlaying();
+        setLoadedTrack(dom.upload.files[0]);
+        resetBars();
     });
 
-    resetCanvas();
-    setInterval(render, 20);
+    renderMain();
 });

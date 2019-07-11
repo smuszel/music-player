@@ -13,12 +13,12 @@ describe('Empty Music Player', () => {
 
     it('has empty visualizer', () => {
         cy.get(selectors.visualizer).should('not.have.class', 'loaded');
-        cy.get(selectors.visualizer).should('not.have.class', 'animated');
+        cy.get(selectors.visualizer).should('not.have.class', 'playing');
     });
 
     it('has random music to play', () => {
         cy.get(selectors.randomMusic).click();
-        cy.get(selectors.visualizer).should('not.have.class', 'animated');
+        cy.get(selectors.visualizer).should('not.have.class', 'playing');
         cy.get(selectors.visualizer).should('have.class', 'loaded');
     });
 });
