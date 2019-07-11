@@ -1,9 +1,18 @@
-Simple music player with following features
+### Simple music player with following features
 
-* file upload 
-* random music play
-* animated tracks
-* play
-* stop
-* resume
-* reset
+* [x] music file upload
+* [x] random music load
+* [x] play button
+* [x] pause button
+* [x] visualizer
+* [x] gradient background
+
+### And additional development tools
+
+* [x] typescript
+* [x] webpack build system
+* [x] linting with eslint and prettier
+* [x] cypress integration tests
+* [x] cypress visual regression tests
+
+## Demo []()
