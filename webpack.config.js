@@ -31,5 +31,11 @@ module.exports = {
         ],
     },
     devtool: 'source-map',
-    plugins: [new webpack.ProgressPlugin(), new HtmlPlugin({ template: paths.template })],
+    plugins: [
+        new webpack.ProgressPlugin(),
+        new HtmlPlugin({
+            template: paths.template,
+            favicon: 'src/favicon.ico',
+        })
+    ],
 };
