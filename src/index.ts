@@ -1,11 +1,16 @@
 import 'regenerator-runtime/runtime';
 import pianoMusic from '../cypress/fixtures/piano.mp3';
 
+const badFileFormatMessage =
+    'It looks like uploaded file could not be played. Does it have a proper file format?';
+
 const dom = {
-    upload: document.querySelector('input'),
+    fileUpload: document.querySelector('input'),
     play: document.querySelector<HTMLButtonElement>('.play'),
     pause: document.querySelector<HTMLButtonElement>('.pause'),
     randomMusic: document.querySelector<HTMLButtonElement>('.random-music'),
+    fileText: document.querySelector('label>span'),
+    uploadTrigger: document.querySelector('label>button'),
     canvas: document.querySelector('canvas'),
     audio: document.createElement('audio'),
 };
@@ -38,6 +43,7 @@ const renderMain = () => {
         dom.pause.disabled = true;
         dom.canvas.classList.remove('loaded');
         dom.canvas.classList.remove('playing');
+        dom.fileText.textContent = 'No file loaded';
         state.opacity = 0.2;
     }
 
@@ -120,7 +126,12 @@ const startPlaying = () => {
     state.audioContext = audioContext;
     state.mediaSource = mediaSource;
     state.playing = true;
-    dom.audio.play();
+    dom.audio.play().catch(() => {
+        alert(badFileFormatMessage);
+        state.playing = false;
+        state.currentFile = null;
+        resetBars();
+    });
 };
 
 const stopPlaying = () => {
@@ -133,22 +144,29 @@ const resetBars = () => (state.byteFrequency = new Uint8Array());
 const setLoadedTrack = (obj: File | Blob) => {
     state.currentFile = obj;
     dom.audio.src = URL.createObjectURL(state.currentFile);
+    dom.fileText.textContent =
+        obj instanceof File ? obj.name : 'random piano ;)';
 };
 
 window.addEventListener('load', () => {
     dom.play.addEventListener('click', startPlaying);
     dom.pause.addEventListener('click', stopPlaying);
 
+    dom.uploadTrigger.addEventListener('click', () => {
+        dom.fileUpload.click();
+    });
+
     dom.randomMusic.addEventListener('click', async () => {
         stopPlaying();
         const blob = await fetch(pianoMusic).then(r => r.blob());
         setLoadedTrack(blob);
         resetBars();
+        dom.fileUpload.value = '';
     });
 
-    dom.upload.addEventListener('change', () => {
+    dom.fileUpload.addEventListener('change', () => {
         stopPlaying();
-        setLoadedTrack(dom.upload.files[0]);
+        setLoadedTrack(dom.fileUpload.files[0]);
         resetBars();
     });
 
