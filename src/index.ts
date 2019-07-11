@@ -1,3 +1,6 @@
+import 'regenerator-runtime/runtime';
+import pianoMusic from '../cypress/fixtures/piano.mp3';
+
 const dom = {
     upload: document.querySelector('input'),
     play: document.querySelector<HTMLButtonElement>('.play'),
@@ -6,102 +9,108 @@ const dom = {
     canvas: document.querySelector('canvas'),
     audio: document.createElement('audio'),
 };
+
 const canvasContext = dom.canvas.getContext('2d');
-const canvasWidth = dom.canvas.width;
-const canvasHeight = dom.canvas.height;
-import pianoMusic from '../cypress/fixtures/piano.mp3';
+const canvasWidth = () => dom.canvas.width;
+const canvasHeight = () => dom.canvas.height;
 
-let currentFile: Blob = null;
-let playing = false;
-let progress = 0;
+const state: State = {
+    currentFile: null,
+    playing: false,
+    analyzer: null,
+    progress: 0,
+    audioContext: null,
+    mediaSource: null,
+};
 
-const renderState = () => {
-    if (playing && currentFile) {
+const render = () => {
+    if (state.playing && state.currentFile) {
         dom.play.disabled = true;
         dom.pause.disabled = false;
         dom.canvas.classList.add('animated');
-    } else if (currentFile) {
+        animateMusicFrame();
+    } else if (state.currentFile) {
         dom.play.disabled = false;
         dom.pause.disabled = true;
+        dom.canvas.classList.add('loaded');
         dom.canvas.classList.remove('animated');
     } else {
         dom.play.disabled = true;
         dom.pause.disabled = true;
+        dom.canvas.classList.add('loaded');
         dom.canvas.classList.remove('animated');
     }
 };
 
-const renderInitial = () => {
-    canvasContext.fillStyle = '#000';
-    canvasContext.fillRect(0, 0, canvasWidth, canvasHeight);
-};
-
-dom.play.addEventListener('click', () => {
-    playing = true;
-    renderState();
-});
-
-dom.pause.addEventListener('click', () => {
-    playing = false;
-    renderState();
-});
-
-dom.randomMusic.addEventListener('click', () => {
-    playing = false;
-    fetch(pianoMusic)
-        .then(r => {
-            return r.blob();
-        })
-        .then(b => {
-            currentFile = b;
-            dom.audio.src = URL.createObjectURL(b);
-            play();
-        });
-    renderState();
-});
-
-dom.upload.addEventListener('change', ev => {
-    dom.audio.src = URL.createObjectURL(dom.upload.files[0]);
-    play();
-});
-
-const play = () => {
-    dom.audio.load();
-    dom.audio.play();
-
-    const audioContext = new AudioContext();
-    const analyzer = audioContext.createAnalyser();
-    const mediaSource = audioContext.createMediaElementSource(dom.audio);
+const startPlaying = () => {
+    !dom.audio.paused && dom.audio.load();
+    const audioContext = state.audioContext || new AudioContext();
+    const analyzer = state.analyzer || audioContext.createAnalyser();
+    const mediaSource =
+        state.mediaSource || audioContext.createMediaElementSource(dom.audio);
     mediaSource.connect(analyzer);
     analyzer.connect(audioContext.destination);
     analyzer.fftSize = 256;
-    const bitCount = analyzer.frequencyBinCount;
-    const byteFrequency = new Uint8Array(bitCount);
-    const barWidth = (canvasWidth / bitCount) * 2.5;
-    let x = 0;
 
-    const renderFrame = () => {
-        requestAnimationFrame(renderFrame);
-
-        x = 0;
-        canvasContext.fillStyle = '#000';
-        canvasContext.fillRect(0, 0, canvasWidth, canvasHeight);
-        analyzer.getByteFrequencyData(byteFrequency);
-
-        byteFrequency.forEach((barHeight, ix) => {
-            const r = barHeight + 5 * (ix / bitCount);
-            const g = 200 * (ix / bitCount);
-            const b = 80;
-
-            canvasContext.fillStyle = `rgb(${[r, g, b].join(',')})`;
-            canvasContext.fillRect(x, canvasHeight - barHeight / 3, barWidth, barHeight);
-
-            x += barWidth + 1;
-        });
-    };
-
+    state.analyzer = analyzer;
+    state.audioContext = audioContext;
+    state.mediaSource = mediaSource;
+    state.playing = true;
     dom.audio.play();
-    renderFrame();
 };
 
-renderInitial();
+const stopPlaying = () => {
+    dom.audio.pause();
+    state.playing = false;
+};
+
+const animateMusicFrame = () => {
+    resetCanvas();
+    const bitCount = state.analyzer.frequencyBinCount;
+    const barWidth = (canvasWidth() / bitCount) * 2.5;
+    const byteFrequency = new Uint8Array(bitCount);
+    state.analyzer.getByteFrequencyData(byteFrequency);
+    let barPosition = 0;
+    byteFrequency.forEach((barHeight, ix) => {
+        const r = barHeight + 5 * (ix / bitCount);
+        const g = 200 * (ix / bitCount);
+        const b = 80;
+
+        canvasContext.fillStyle = `rgb(${[r, g, b].join(',')})`;
+        canvasContext.fillRect(
+            barPosition,
+            canvasHeight() - barHeight / 3,
+            barWidth,
+            barHeight,
+        );
+
+        barPosition += barWidth + 1;
+    });
+};
+
+const resetCanvas = () => {
+    canvasContext.fillStyle = '#000';
+    canvasContext.fillRect(0, 0, canvasWidth(), canvasHeight());
+};
+
+window.addEventListener('load', () => {
+    dom.play.addEventListener('click', startPlaying);
+    dom.pause.addEventListener('click', stopPlaying);
+
+    dom.randomMusic.addEventListener('click', async () => {
+        stopPlaying();
+        resetCanvas();
+        const blob = await fetch(pianoMusic).then(r => r.blob());
+        state.currentFile = blob;
+        dom.audio.src = URL.createObjectURL(state.currentFile);
+    });
+
+    dom.upload.addEventListener('change', () => {
+        state.currentFile = dom.upload.files[0];
+        resetCanvas();
+        dom.audio.src = URL.createObjectURL(state.currentFile);
+    });
+
+    resetCanvas();
+    setInterval(render, 20);
+});

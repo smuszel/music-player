@@ -1,21 +1,17 @@
-describe('Music player', () => {
-    const fileName = 'piano.mp3';
+import { selectors } from './selectors';
+
+describe('Music Player visual regression', () => {
 
     beforeEach(() => {
         cy.visit('localhost:8080');
     });
 
-    it('has default view', () => {
+    it('matches empty view', () => {
         cy.matchImageSnapshot();
     });
 
-    it('has playing view', () => {
-        cy.fixture(fileName).then(fileContent => {
-            cy.get('input[type="file"]').upload(
-                { fileContent, fileName, mimeType: 'application/json' },
-                { subjectType: 'drag-n-drop' },
-            );
-            cy.matchImageSnapshot();
-        });
+    it('it matches loaded view', () => {
+        cy.get(selectors.randomMusic).click();
+        cy.matchImageSnapshot();
     });
 });

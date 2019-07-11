@@ -1,13 +1,21 @@
 {
     "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
         "strictNullChecks": false,
         "noImplicitThis": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
+        "esModuleInterop": true,
         "outDir": "./dist",
         "lib": ["dom", "esnext"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./src/**/*.ts",
+        "./cypress"
+    ],
+    "files": [
+        "types.d.ts",
+        "./cypress/fixtures/piano.mp3"
     ]
 }
