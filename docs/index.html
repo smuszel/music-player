@@ -27,6 +27,10 @@
     main {
         position: relative;
     }
+
+    input {
+        visibility: hidden;
+    }
 </style>
 <body>
     <main>
@@ -34,7 +38,13 @@
             <button class="play">Play</button>
             <button class="pause">Pause</button>
             <button class="random-music">Load Random</button>
-            <input type="file">
+            <label for="files">
+                <button class="upload">Upload</button>
+                <span>
+                    No file loaded
+                </span>
+                <input id="files" type="file">
+            </label>
         </section>
         <canvas></canvas>
     </main>
