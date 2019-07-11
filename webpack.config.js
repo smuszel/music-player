@@ -5,13 +5,13 @@ const path = require('path');
 const paths = {
     index: path.resolve(__dirname, 'src', 'index.ts'),
     template: path.resolve(__dirname, 'src', 'index.html'),
+    docs: path.resolve(__dirname, 'docs'),
 };
 
 /** @type {webpack.Configuration} */
 module.exports = {
-    entry: {
-        index: paths.index,
-    },
+    entry: { index: paths.index },
+    output: { path: paths.docs },
     resolve: {
         extensions: ['.js', '.css', '.ts'],
     },
