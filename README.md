@@ -1,3 +1,5 @@
+# :wave: [Demo](https://smuszel.github.io/music-player/)
+
 ### Simple music player with following features
 
 * [x] music file upload
@@ -14,5 +16,3 @@
 * [x] linting with eslint and prettier
 * [x] cypress integration tests
 * [x] cypress visual regression tests
-
-## Demo []()
